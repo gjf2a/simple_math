@@ -29,17 +29,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _correct = 0;
-  int _incorrect = 0;
   int _x = 0;
   int _y = 0;
+  bool _lastCorrect = true;
   Random _rng = new Random();
   TextEditingController _controller;
 
   void initState() {
     super.initState();
     _controller = TextEditingController();
-    _reset_nums();
+    _resetNums();
   }
 
   void dispose() {
@@ -47,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _reset_nums() {
+  void _resetNums() {
     _x = _rng.nextInt(12) + 1;
     _y = _rng.nextInt(12) + 1;
   }
@@ -57,12 +56,8 @@ class _MyHomePageState extends State<MyHomePage> {
       var target = int.parse(answer);
       setState(() {
         int total = _x + _y;
-        if (total == target) {
-          _correct += 1;
-        } else {
-          _incorrect += 1;
-        }
-        _reset_nums();
+        _lastCorrect = (total == target);
+        _resetNums();
       });
     } on FormatException {
 
@@ -77,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
+      backgroundColor: _lastCorrect ? Colors.green : Colors.red,
       body: Center(
         child: Column (
           mainAxisAlignment: MainAxisAlignment.center,
@@ -88,12 +84,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(width: 100, child: TextField(controller: _controller,style: _ts,
                     onSubmitted: (String value) {_check(value); _controller.clear();})),
               ],),
-            Text(
-              'Correct: $_correct',style: _ts,
-            ),
-            Text(
-              'Incorrect: $_incorrect',style: _ts,
-            )
             ],
         ),
       ),
