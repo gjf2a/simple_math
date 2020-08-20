@@ -8,10 +8,11 @@ class Problems {
   Problems(Op op, int max, this._random) {
       for (var x = 0; x <= max; x++) {
         for (var y = 0; y <= max; y++) {
-          if (op == Op.minus || op == Op.divide) {
-            _problems.add(Problem(x, inv(op), y).inverse());
-          } else {
-            _problems.add(Problem(x, op, y));
+          Problem p = (op == Op.minus || op == Op.divide)
+              ? Problem(x, inv(op), y).inverse()
+              : Problem(x, op, y);
+          if (p.valid) {
+            _problems.add(p);
           }
         }
       }
@@ -53,6 +54,7 @@ class Problem {
   int _y;
   int _result;
   int _hash;
+  bool _valid = true;
 
   Problem(this._x, this._op, this._y) {
     if (_op == Op.plus) {
@@ -61,8 +63,10 @@ class Problem {
       _result = _x - _y;
     } else if (_op == Op.times) {
       _result = _x * _y;
-    } else {
+    } else if (_y != 0) {
       _result = _x ~/ _y;
+    } else {
+      _valid = false;
     }
     _hash = toString().hashCode;
   }
@@ -70,6 +74,8 @@ class Problem {
   Problem inverse() => Problem(_result, inv(_op), _y);
 
   int get answer => _result;
+
+  bool get valid => _valid;
 
   bool operator ==(o) => o is Problem && _x == o._x && _y == o._y && _op == o._op;
 

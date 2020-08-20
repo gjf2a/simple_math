@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'package:simple_math/problems.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -29,16 +31,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _x = 0;
-  int _y = 0;
-  bool _lastCorrect = true;
+  AppState _state = AppState.setup;
+  Problems _problems;
   Random _rng = new Random();
   TextEditingController _controller;
+  TextStyle _ts;
+  Op _selected = Op.plus;
+  bool _lastCorrect = true;
 
   void initState() {
     super.initState();
-    _controller = TextEditingController();
-    _resetNums();
+    _controller = TextEditingController(text: '12');
   }
 
   void dispose() {
@@ -46,18 +49,15 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _resetNums() {
-    _x = _rng.nextInt(12) + 1;
-    _y = _rng.nextInt(12) + 1;
-  }
-
   void _check(String answer) {
     try {
       var target = int.parse(answer);
       setState(() {
-        int total = _x + _y;
-        _lastCorrect = (total == target);
-        _resetNums();
+        var result = _problems.enterResponse(target);
+        _lastCorrect = (result == Outcome.correct);
+        if (_problems.finished()) {
+          _state = AppState.done;
+        }
       });
     } on FormatException {
 
@@ -66,8 +66,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle _ts = Theme.of(context).textTheme.headline4;
+    _ts = Theme.of(context).textTheme.headline4;
+    if (_state == AppState.quiz) {
+      return quizScreen();
+    } else if (_state == AppState.setup) {
+      return setup();
+    } else {
+      return done();
+    }
+  }
 
+  Widget quizScreen() {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -80,13 +89,85 @@ class _MyHomePageState extends State<MyHomePage> {
             Row (
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text('$_x + $_y = ', style: _ts),
-                SizedBox(width: 100, child: TextField(controller: _controller,style: _ts,
+                Text(_problems.current().toString() + " = ", style: _ts),
+                SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
                     onSubmitted: (String value) {_check(value); _controller.clear();})),
               ],),
-            ],
+            RaisedButton(child: Text("Restart", style: _ts), onPressed: () {setState(() {
+              _state = AppState.setup;
+            });},)
+          ],
         ),
       ),
     );
   }
+
+  Widget setup() {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: Column (
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            radio("+", Op.plus),
+            radio("-", Op.minus),
+            radio("x", Op.times),
+            radio("/", Op.divide),
+            SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
+                onSubmitted: (String value) {_start(value); _controller.clear();})),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget radio(String label, Op value) {
+    return Row( mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget> [Radio(groupValue: _selected, value: value, onChanged: (o) {setState(() {
+          print("$value");_selected = value;});}),
+        Text(label, style: _ts)]);
+  }
+
+  void _start(String value) {
+    try {
+      var target = int.parse(value);
+      print("target: $target; _selected: $_selected");
+      setState(() {
+        print("setting state");
+        _problems = Problems(_selected, target, _rng);
+        print("created _problems");
+        _state = AppState.quiz;
+        print("_state: $_state");
+      });
+    } on FormatException {
+      print("Threw an exception...");
+    }
+  }
+
+  Widget done() {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: Column (
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Congratulations! All answers correct.", style: _ts),
+            RaisedButton(onPressed: () {setState(() {
+              _state = AppState.setup;
+            });}, child: Text("Restart", style: _ts,)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+enum AppState {
+  setup,
+  quiz,
+  done
 }
