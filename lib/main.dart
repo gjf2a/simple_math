@@ -38,10 +38,15 @@ class _MyHomePageState extends State<MyHomePage> {
   TextStyle _ts;
   Op _selected = Op.plus;
   bool _lastCorrect = true;
+  int _lastMax = 12;
 
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: '12');
+    _resetController();
+  }
+
+  void _resetController() {
+    _controller = TextEditingController(text: '$_lastMax');
   }
 
   void dispose() {
@@ -67,39 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     _ts = Theme.of(context).textTheme.headline4;
-    if (_state == AppState.quiz) {
-      return quizScreen();
-    } else if (_state == AppState.setup) {
+    if (_state == AppState.setup) {
       return setup();
+    } else if (_state == AppState.quiz) {
+      return quizScreen();
     } else {
       return done();
     }
-  }
-
-  Widget quizScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      backgroundColor: _lastCorrect ? Colors.green : Colors.red,
-      body: Center(
-        child: Column (
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Row (
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(_problems.current().toString() + " = ", style: _ts),
-                SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
-                    onSubmitted: (String value) {_check(value); _controller.clear();})),
-              ],),
-            RaisedButton(child: Text("Restart", style: _ts), onPressed: () {setState(() {
-              _state = AppState.setup;
-            });},)
-          ],
-        ),
-      ),
-    );
   }
 
   Widget setup() {
@@ -115,8 +94,33 @@ class _MyHomePageState extends State<MyHomePage> {
             radio("-", Op.minus),
             radio("x", Op.times),
             radio("/", Op.divide),
-            SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
-                onSubmitted: (String value) {_start(value); _controller.clear();})),
+            ListTile(title: Text("Maximum", style: _ts), leading: SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,))),
+            RaisedButton(child: Text("Start", style: _ts), onPressed: () {_start(_controller.text);}),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget quizScreen() {
+    _controller.clear();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      backgroundColor: _lastCorrect ? Colors.green : Colors.red,
+      body: Center(
+        child: Column (
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row (
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(_problems.current().toString() + " = ", style: _ts),
+                SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
+                    onSubmitted: (String value) {_check(value);})),
+              ],),
+            _restartButton()
           ],
         ),
       ),
@@ -124,19 +128,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget radio(String label, Op value) {
-    return Row( mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget> [Radio(groupValue: _selected, value: value, onChanged: (o) {setState(() {
+    return ListTile( title: Text(label, style: _ts),
+        leading: Radio(groupValue: _selected, value: value, onChanged: (o) {setState(() {
           print("$value");_selected = value;});}),
-        Text(label, style: _ts)]);
+        );
   }
 
   void _start(String value) {
     try {
-      var target = int.parse(value);
-      print("target: $target; _selected: $_selected");
+      _lastMax = int.parse(value);
+      print("target: $_lastMax; _selected: $_selected");
       setState(() {
         print("setting state");
-        _problems = Problems(_selected, target, _rng);
+        _problems = Problems(_selected, _lastMax, _rng);
         print("created _problems");
         _state = AppState.quiz;
         print("_state: $_state");
@@ -156,13 +160,22 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text("Congratulations! All answers correct.", style: _ts),
-            RaisedButton(onPressed: () {setState(() {
-              _state = AppState.setup;
-            });}, child: Text("Restart", style: _ts,)),
+            _restartButton(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _restartButton() {
+    return RaisedButton(onPressed: () {_restart();}, child: Text("Restart", style: _ts,));
+  }
+
+  void _restart() {
+    setState(() {
+      _resetController();
+      _state = AppState.setup;
+    });
   }
 }
 
