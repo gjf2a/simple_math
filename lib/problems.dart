@@ -6,17 +6,23 @@ class Problems {
   Random _random;
 
   Problems(Op op, int max, this._random) {
-      for (var x = 0; x <= max; x++) {
-        for (var y = 0; y <= max; y++) {
-          Problem p = (op == Op.minus || op == Op.divide)
-              ? Problem(x, inv(op), y).inverse()
-              : Problem(x, op, y);
+      for (int x = 0; x <= max; x++) {
+        for (int y = 0; y <= max; y++) {
+          Problem p = _makeFrom(x, y, op);
           if (p.valid) {
             _problems.add(p);
           }
         }
       }
       _problems.shuffle(_random);
+  }
+
+  Problem _makeFrom(int x, int y, Op op) {
+    if (op == Op.minus || op == Op.divide) {
+      return Problem(x, inv(op), y).inverse();
+    } else {
+      return Problem(x, op, y);
+    }
   }
 
   bool finished() => _problems.isEmpty && _incorrect.isEmpty;
@@ -40,7 +46,7 @@ class Problems {
     }
   }
 
-  String toString() => 'Problems:' + _problems.toString() + "; Incorrect:" + _incorrect.toString();
+  String toString() => 'Problems:${_problems.toString()}; Incorrect:${_incorrect.toString()}';
 }
 
 enum Outcome {
