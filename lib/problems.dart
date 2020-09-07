@@ -1,14 +1,14 @@
 import 'dart:math';
 
-class Problems {
-  List<Problem> _problems = List();
-  List<Problem> _incorrect = List();
+class Quiz {
+  List<ArithmeticProblem> _problems = List();
+  List<ArithmeticProblem> _incorrect = List();
   Random _random;
 
-  Problems(Op op, int max, this._random) {
+  Quiz(Op op, int max, this._random) {
       for (int x = 0; x <= max; x++) {
         for (int y = 0; y <= max; y++) {
-          Problem p = _makeFrom(x, y, op);
+          ArithmeticProblem p = _makeFrom(x, y, op);
           if (p.valid) {
             _problems.add(p);
           }
@@ -17,17 +17,17 @@ class Problems {
       _problems.shuffle(_random);
   }
 
-  Problem _makeFrom(int x, int y, Op op) {
+  ArithmeticProblem _makeFrom(int x, int y, Op op) {
     if (op == Op.minus || op == Op.divide) {
-      return Problem(x, inv(op), y).inverse();
+      return ArithmeticProblem(x, inv(op), y).inverse();
     } else {
-      return Problem(x, op, y);
+      return ArithmeticProblem(x, op, y);
     }
   }
 
   bool finished() => _problems.isEmpty && _incorrect.isEmpty;
 
-  Problem current() {
+  ArithmeticProblem current() {
     if (_problems.isEmpty) {
       _problems = _incorrect;
       _incorrect = List();
@@ -37,7 +37,7 @@ class Problems {
   }
 
   Outcome enterResponse(int response) {
-    Problem p = _problems.removeLast();
+    ArithmeticProblem p = _problems.removeLast();
     if (p.answer == response) {
       return Outcome.correct;
     } else {
@@ -54,7 +54,7 @@ enum Outcome {
   incorrect
 }
 
-class Problem {
+class ArithmeticProblem {
   int _x;
   Op _op;
   int _y;
@@ -62,7 +62,7 @@ class Problem {
   int _hash;
   bool _valid = true;
 
-  Problem(this._x, this._op, this._y) {
+  ArithmeticProblem(this._x, this._op, this._y) {
     if (_op == Op.plus) {
       _result = _x + _y;
     } else if (this._op == Op.minus) {
@@ -77,13 +77,13 @@ class Problem {
     _hash = toString().hashCode;
   }
 
-  Problem inverse() => Problem(_result, inv(_op), _y);
+  ArithmeticProblem inverse() => ArithmeticProblem(_result, inv(_op), _y);
 
   int get answer => _result;
 
   bool get valid => _valid;
 
-  bool operator ==(o) => o is Problem && _x == o._x && _y == o._y && _op == o._op;
+  bool operator ==(o) => o is ArithmeticProblem && _x == o._x && _y == o._y && _op == o._op;
 
   int get hashCode => _hash;
 

@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   AppState _state = AppState.setup;
-  Problems _problems;
+  Quiz _problems;
   Random _rng = new Random();
   TextEditingController _controller;
   TextStyle _ts;
@@ -140,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print("target: $_lastMax; _selected: $_selected");
       setState(() {
         print("setting state");
-        _problems = Problems(_selected, _lastMax, _rng);
+        _problems = Quiz(_selected, _lastMax, _rng);
         print("created _problems");
         _state = AppState.quiz;
         print("_state: $_state");

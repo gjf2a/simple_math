@@ -5,17 +5,17 @@ import 'package:simple_math/problems.dart';
 
 void main() {
   test('2 + 3', () {
-    final p1 = Problem(2, Op.plus, 3);
+    final p1 = ArithmeticProblem(2, Op.plus, 3);
     expect(p1.answer, 5);
-    expect(Problem(5, Op.minus, 3), p1.inverse());
+    expect(ArithmeticProblem(5, Op.minus, 3), p1.inverse());
     expect(p1.inverse().answer, 2);
     expect(p1.inverse().inverse(), p1);
   });
 
   test('2 * 3', () {
-    final p1 = Problem(2, Op.times, 3);
+    final p1 = ArithmeticProblem(2, Op.times, 3);
     expect(p1.answer, 6);
-    expect(Problem(6, Op.divide, 3), p1.inverse());
+    expect(ArithmeticProblem(6, Op.divide, 3), p1.inverse());
     expect(p1.inverse().answer, 2);
     expect(p1.inverse().inverse(), p1);
   });
@@ -40,7 +40,7 @@ void main() {
 }
 
 void test_problems(Op op, List<int> answers, List<Outcome> expected) {
-  Problems probs = Problems(op, 2, new Random(2));
+  Quiz probs = Quiz(op, 2, new Random(2));
   print("$probs");
   for (var i = 0; i < answers.length; i++) {
     print("${probs.current()} returns ${answers[i]} ?= ${probs.current().answer}; ${expected[i]}");
