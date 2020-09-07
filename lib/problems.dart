@@ -8,13 +8,16 @@ class Quiz {
   Quiz(Op op, int max, this._random) {
       for (int x = 0; x <= max; x++) {
         for (int y = 0; y <= max; y++) {
-          ArithmeticProblem p = _makeFrom(x, y, op);
-          if (p.valid) {
-            _problems.add(p);
-          }
+          _addValidProblem(_makeFrom(x, y, op));
         }
       }
       _problems.shuffle(_random);
+  }
+
+  void _addValidProblem(ArithmeticProblem p) {
+    if (p.valid) {
+      _problems.add(p);
+    }
   }
 
   ArithmeticProblem _makeFrom(int x, int y, Op op) {
