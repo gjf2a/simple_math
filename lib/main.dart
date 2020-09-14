@@ -73,14 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     _ts = Theme.of(context).textTheme.headline4;
-    return _screen();/*
-    if (_state == AppState.setup) {
-      return setup();
-    } else if (_state == AppState.quiz) {
-      return quizScreen();
-    } else {
-      return done();
-    }*/
+    return _screen();
   }
 
   Widget setup() {
