@@ -31,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  AppState _state = AppState.setup;
+  Widget Function() _screen;
   Quiz _problems;
   Random _rng = new Random();
   TextEditingController _controller;
@@ -43,6 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _resetController();
+    _screen = setup;
   }
 
   void _resetController() {
@@ -61,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
         var result = _problems.enterResponse(target);
         _lastCorrect = (result == Outcome.correct);
         if (_problems.finished()) {
-          _state = AppState.done;
+          _screen = done;
         }
       });
     } on FormatException {
@@ -72,13 +73,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     _ts = Theme.of(context).textTheme.headline4;
+    return _screen();/*
     if (_state == AppState.setup) {
       return setup();
     } else if (_state == AppState.quiz) {
       return quizScreen();
     } else {
       return done();
-    }
+    }*/
   }
 
   Widget setup() {
@@ -142,8 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
         print("setting state");
         _problems = Quiz(_selected, _lastMax, _rng);
         print("created _problems");
-        _state = AppState.quiz;
-        print("_state: $_state");
+        _screen = quizScreen;
       });
     } on FormatException {
       print("Threw an exception...");
@@ -174,13 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _restart() {
     setState(() {
       _resetController();
-      _state = AppState.setup;
+      _screen = setup;
     });
   }
-}
-
-enum AppState {
-  setup,
-  quiz,
-  done
 }

@@ -1,5 +1,33 @@
 import 'dart:math';
 
+enum Op {
+  plus,
+  minus,
+  times,
+  divide
+}
+
+Map<Op,int Function(int,int)> operations = {
+  Op.plus: (a, b) => a + b,
+  Op.minus: (a, b) => a - b,
+  Op.times: (a, b) => a * b,
+  Op.divide: (a, b) => a ~/ b
+};
+
+Map<Op,Op> inverses = {
+  Op.plus: Op.minus,
+  Op.minus: Op.plus,
+  Op.times: Op.divide,
+  Op.divide: Op.times
+};
+
+Map<Op,String> symbols = {
+  Op.plus: "+",
+  Op.minus: "-",
+  Op.times: "x",
+  Op.divide: "/"
+};
+
 class Quiz {
   List<ArithmeticProblem> _problems = List();
   List<ArithmeticProblem> _incorrect = List();
@@ -22,7 +50,7 @@ class Quiz {
 
   ArithmeticProblem _makeFrom(int x, int y, Op op) {
     if (op == Op.minus || op == Op.divide) {
-      return ArithmeticProblem(x, inv(op), y).inverse();
+      return ArithmeticProblem(x, inverses[op], y).inverse();
     } else {
       return ArithmeticProblem(x, op, y);
     }
@@ -66,21 +94,14 @@ class ArithmeticProblem {
   bool _valid = true;
 
   ArithmeticProblem(this._x, this._op, this._y) {
-    if (_op == Op.plus) {
-      _result = _x + _y;
-    } else if (this._op == Op.minus) {
-      _result = _x - _y;
-    } else if (_op == Op.times) {
-      _result = _x * _y;
-    } else if (_y != 0) {
-      _result = _x ~/ _y;
-    } else {
-      _valid = false;
+    _valid = _y != 0 || _op != Op.divide;
+    if (_valid) {
+      _result = operations[_op](_x, _y);
     }
     _hash = toString().hashCode;
   }
 
-  ArithmeticProblem inverse() => ArithmeticProblem(_result, inv(_op), _y);
+  ArithmeticProblem inverse() => ArithmeticProblem(_result, inverses[_op], _y);
 
   int get answer => _result;
 
@@ -91,16 +112,6 @@ class ArithmeticProblem {
   int get hashCode => _hash;
 
   String toString() {
-    String symbol = _op == Op.plus ? "+" : _op == Op.minus ? "-" : _op == Op.times ? "x" : "/";
-    return "$_x $symbol $_y";
+    return "$_x ${symbols[_op]} $_y";
   }
 }
-
-enum Op {
-  plus,
-  minus,
-  times,
-  divide
-}
-
-Op inv(Op o) => o == Op.plus ? Op.minus : o == Op.minus ? Op.plus : o == Op.times ? Op.divide : Op.times;
