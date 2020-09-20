@@ -55,114 +55,109 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _check(String answer) {
-    try {
-      var target = int.parse(answer);
-      setState(() {
-        var result = _problems.enterResponse(target);
-        _lastCorrect = (result == Outcome.correct);
-        if (_problems.finished()) {
-          _screen = done;
-        }
-      });
-    } on FormatException {
-
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     _ts = Theme.of(context).textTheme.headline4;
-    return _screen();
+    return Scaffold(
+        appBar: AppBar(title: Text(widget.title)),
+        backgroundColor: pickBackground(),
+        body: Center(child: _screen()));
+  }
+
+  Color pickBackground() {
+    if (_screen == quizScreen) {
+      return _lastCorrect ? Colors.green : Colors.red;
+    } else {
+      return Colors.white;
+    }
   }
 
   Widget setup() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column (
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            radio("+", Op.plus),
-            radio("-", Op.minus),
-            radio("x", Op.times),
-            radio("/", Op.divide),
-            ListTile(title: Text("Maximum", style: _ts), leading: SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,))),
-            RaisedButton(child: Text("Start", style: _ts), onPressed: () {_start(_controller.text);}),
-          ],
-        ),
-      ),
+    return Column (
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        radio("+", Op.plus),
+        radio("-", Op.minus),
+        radio("x", Op.times),
+        radio("/", Op.divide),
+        numericalEntry(200, "Maximum", (String value) { }),
+        RaisedButton(child: Text("Start", style: _ts), onPressed: () {_start(_controller.text);}),
+      ],
     );
   }
 
   Widget quizScreen() {
     _controller.clear();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      backgroundColor: _lastCorrect ? Colors.green : Colors.red,
-      body: Center(
-        child: Column (
+    return Column (
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Row (
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Row (
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(_problems.current().toString() + " = ", style: _ts),
-                SizedBox(width: 100, child: TextField(controller: _controller,style: _ts, keyboardType: TextInputType.number,
-                    onSubmitted: (String value) {_check(value);})),
-              ],),
-            _restartButton()
-          ],
-        ),
-      ),
+            Text("${_problems.current()} = ", style: _ts),
+            numericalEntry(200, "answer", _check),
+          ],),
+        _restartButton()
+      ],
     );
+  }
+
+  Widget numericalEntry(double width, String label, void Function(String) onSubmitted) {
+    return SizedBox(width: width, child: TextField(controller: _controller, style: _ts,
+      keyboardType: TextInputType.number, onSubmitted: onSubmitted,
+        decoration: InputDecoration(labelText: label)));
   }
 
   Widget radio(String label, Op value) {
     return ListTile( title: Text(label, style: _ts),
         leading: Radio(groupValue: _selected, value: value, onChanged: (o) {setState(() {
-          print("$value");_selected = value;});}),
+          _selected = value;});}),
         );
   }
 
-  void _start(String value) {
+  Widget done() {
+    return Column (
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text("Congratulations! All answers correct.", style: _ts),
+        _restartButton(),
+      ],
+    );
+  }
+
+  Widget _restartButton() {
+    return RaisedButton(onPressed: _restart, child: Text("Restart", style: _ts,));
+  }
+
+  void _processNumberEntry(String value, void Function(int) processor) {
     try {
-      _lastMax = int.parse(value);
-      print("target: $_lastMax; _selected: $_selected");
-      setState(() {
-        print("setting state");
-        _problems = Quiz(_selected, _lastMax, _rng);
-        print("created _problems");
-        _screen = quizScreen;
-      });
+      processor(int.parse(value));
     } on FormatException {
       print("Threw an exception...");
     }
   }
 
-  Widget done() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column (
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text("Congratulations! All answers correct.", style: _ts),
-            _restartButton(),
-          ],
-        ),
-      ),
-    );
+  void _start(String value) {
+    _processNumberEntry(value, (v) {
+      setState(() {
+        _lastMax = v;
+        _lastCorrect = true;
+        _problems = Quiz(_selected, _lastMax, _rng);
+        _screen = quizScreen;
+      });
+    });
   }
 
-  Widget _restartButton() {
-    return RaisedButton(onPressed: () {_restart();}, child: Text("Restart", style: _ts,));
+  void _check(String answer) {
+    _processNumberEntry(answer, (target) {
+      setState(() {
+        Outcome result = _problems.enterResponse(target);
+        _lastCorrect = (result == Outcome.correct);
+        if (_problems.finished()) {
+          _screen = done;
+        }
+      });
+    });
   }
 
   void _restart() {

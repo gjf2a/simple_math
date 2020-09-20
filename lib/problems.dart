@@ -7,25 +7,23 @@ enum Op {
   divide
 }
 
-Map<Op,int Function(int,int)> operations = {
-  Op.plus: (a, b) => a + b,
-  Op.minus: (a, b) => a - b,
-  Op.times: (a, b) => a * b,
-  Op.divide: (a, b) => a ~/ b
-};
+class OpData {
+  int Function(int,int) _op;
+  Op _inverse;
+  String _symbol;
 
-Map<Op,Op> inverses = {
-  Op.plus: Op.minus,
-  Op.minus: Op.plus,
-  Op.times: Op.divide,
-  Op.divide: Op.times
-};
+  OpData(this._op, this._inverse, this._symbol);
 
-Map<Op,String> symbols = {
-  Op.plus: "+",
-  Op.minus: "-",
-  Op.times: "x",
-  Op.divide: "/"
+  int Function(int,int) get op => _op;
+  Op get inverse => _inverse;
+  String get symbol => _symbol;
+}
+
+Map<Op,OpData> opData = {
+  Op.plus: OpData((a, b) => a + b, Op.minus, "+"),
+  Op.minus: OpData((a, b) => a - b, Op.plus, "-"),
+  Op.times: OpData((a, b) => a * b, Op.divide, "x"),
+  Op.divide: OpData((a, b) => a ~/ b, Op.times, "/")
 };
 
 class Quiz {
@@ -50,7 +48,7 @@ class Quiz {
 
   ArithmeticProblem _makeFrom(int x, int y, Op op) {
     if (op == Op.minus || op == Op.divide) {
-      return ArithmeticProblem(x, inverses[op], y).inverse();
+      return ArithmeticProblem(x, opData[op].inverse, y).inverse();
     } else {
       return ArithmeticProblem(x, op, y);
     }
@@ -96,12 +94,12 @@ class ArithmeticProblem {
   ArithmeticProblem(this._x, this._op, this._y) {
     _valid = _y != 0 || _op != Op.divide;
     if (_valid) {
-      _result = operations[_op](_x, _y);
+      _result = opData[_op].op(_x, _y);
     }
     _hash = toString().hashCode;
   }
 
-  ArithmeticProblem inverse() => ArithmeticProblem(_result, inverses[_op], _y);
+  ArithmeticProblem inverse() => ArithmeticProblem(_result, opData[_op].inverse, _y);
 
   int get answer => _result;
 
@@ -112,6 +110,6 @@ class ArithmeticProblem {
   int get hashCode => _hash;
 
   String toString() {
-    return "$_x ${symbols[_op]} $_y";
+    return "$_x ${opData[_op].symbol} $_y";
   }
 }

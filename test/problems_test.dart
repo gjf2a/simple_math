@@ -5,19 +5,11 @@ import 'package:simple_math/problems.dart';
 
 void main() {
   test('2 + 3', () {
-    final p1 = ArithmeticProblem(2, Op.plus, 3);
-    expect(p1.answer, 5);
-    expect(ArithmeticProblem(5, Op.minus, 3), p1.inverse());
-    expect(p1.inverse().answer, 2);
-    expect(p1.inverse().inverse(), p1);
+    basicTest(Op.plus, 2, 3, 5);
   });
 
   test('2 * 3', () {
-    final p1 = ArithmeticProblem(2, Op.times, 3);
-    expect(p1.answer, 6);
-    expect(ArithmeticProblem(6, Op.divide, 3), p1.inverse());
-    expect(p1.inverse().answer, 2);
-    expect(p1.inverse().inverse(), p1);
+    basicTest(Op.times, 2, 3, 6);
   });
 
   test('Problems, addition', () {
@@ -37,6 +29,14 @@ void main() {
   test('Problems, division', () {
     testQuiz(Op.divide, [1, 2, 0, 1, 2, 0], [Outcome.correct, Outcome.correct, Outcome.correct, Outcome.correct, Outcome.correct, Outcome.correct]);
   });
+}
+
+void basicTest(Op op, int operand1, int operand2, int expectedValue) {
+  ArithmeticProblem p1 = ArithmeticProblem(operand1, op, operand2);
+  expect(p1.answer, expectedValue);
+  expect(ArithmeticProblem(expectedValue, opData[op].inverse, operand2), p1.inverse());
+  expect(p1.inverse().answer, operand1);
+  expect(p1.inverse().inverse(), p1);
 }
 
 void testQuiz(Op op, List<int> answers, List<Outcome> expected) {
